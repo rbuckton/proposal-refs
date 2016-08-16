@@ -1,0 +1,31 @@
+{
+  "name": "ecmascript-ref",
+  "version": "1.0.0",
+  "description": "Ref declarations and expressions for ECMAScript",
+  "private": true,
+  "scripts": {
+    "update-pages": "gulp update-pages"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rbuckton/ecmascript-ref.git"
+  },
+  "keywords": [
+    "javascript",
+    "ecmascript"
+  ],
+  "author": "Ron Buckton (rbuckton@microsoft.com)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/rbuckton/ecmascript-ref/issues"
+  },
+  "homepage": "https://github.com/rbuckton/ecmascript-ref#readme",
+  "dependencies": {
+    "ecmarkup": "^3.3.1"
+  },
+  "devDependencies": {
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-emu": "^1.0.0"
+  }
+}
