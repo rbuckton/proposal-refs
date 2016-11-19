@@ -1,0 +1,16 @@
+@import "es2015"
+
+RefBinding[Yield] :
+    `ref` BindingIdentifier[?Yield]
+
+UnaryExpression[Yield] :
+    `ref` [no LineTerminator here] UnaryExpression[?Yield]
+
+LexicalBinding[In, Yield] :
+    RefBinding[?Yield] Initializer[?In, ?Yield]?
+
+VariableDeclaration[In, Yield] :
+    RefBinding[?Yield] Initializer[?In, ?Yield]?
+
+SingleNameBinding[Yield] :
+    RefBinding[?Yield] Initializer[+In, ?Yield]?

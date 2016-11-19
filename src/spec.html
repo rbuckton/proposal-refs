@@ -1,0 +1,161 @@
+<!doctype html>
+<meta charset="utf8">
+<link rel="stylesheet" href="ecmarkup.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+<link rel="spec" href="es2015" />
+<script src="ecmarkup.js"></script>
+<pre class="metadata">
+    title: Ref Declarations and Expressions
+    stage: 0
+    grammar: strict
+    contributors: Ron Buckton, Ecma International
+</pre>
+<emu-intro id="sec-intro">
+    <h1>Introduction</h1>
+    <p></p>
+    <emu-intro id="sec-intro-syntax">
+        <h1>Syntax</h1>
+        <p></p>
+        <pre><code class="javascript">
+function update(condition, ref left, ref right, value) {
+  if (condition())
+    left = value;
+  else
+    right = value;
+}
+
+let a = 1, b = 2;
+update(() => true, ref a, ref b, 3);
+
+print(a); // 3
+print(b); // 2
+        </code></pre>
+
+        <pre><code class="javascript">
+function max(ref first, ref second, ref third) {
+  const ref max = first > second ? ref first : ref second;
+  return max > third ? ref max : ref third;
+}
+
+let a = 1, b = 2, c = 3;
+max(ref a, ref b, ref c) = 4;
+
+print(a); // 1
+print(b); // 2
+print(c); // 4
+        </code></pre>
+        <p>Decorators</p>
+        <pre><code class="javascript">
+import { Type } from "./metadata";
+class Left {
+  @Type(ref Right)
+  right;
+}
+class Right {
+  @Type(ref Left)
+  left;
+}
+        </code></pre>
+    </emu-intro>
+</emu-intro>
+<emu-clause id="sec-syntax">
+    <h1>Syntax</h1>
+    <emu-clause id="sec-syntax-newproductions">
+        <h1>New Productions</h1>
+        <emu-grammar>
+RefBinding[Yield] :
+    `ref` BindingIdentifier[?Yield]
+        </emu-grammar>
+    </emu-clause>
+
+    <emu-clause id="sec-syntax-updatedproductions">
+        <h1>Updated Productions</h1>
+        <emu-grammar>
+UnaryExpression[Yield] :
+    <ins>`ref` [no LineTerminator here] UnaryExpression[?Yield]</ins>
+
+LexicalBinding[In, Yield] :
+    <ins>RefBinding[?Yield] Initializer[?In, ?Yield]?</ins>
+
+VariableDeclaration[In, Yield] :
+    <ins>RefBinding[?Yield] Initializer[?In, ?Yield]?</ins>
+
+SingleNameBinding[Yield] :
+    <ins>RefBinding[?Yield] Initializer[+In, ?Yield]?</ins>
+        </emu-grammar>
+    </emu-clause>
+</emu-clause>
+<emu-clause id="sec-semantics">
+    <h1>Semantics</h1>
+</emu-clause>
+<emu-annex id="sec-annex">
+    <h1>Annex</h1>
+    <emu-annex id="sec-annex-transpile">
+        <h1>Down-level transpile</h1>
+
+        <pre><code class="javascript">
+// source.js
+function update(condition, ref left, ref right, value) {
+  if (condition())
+    left = value;
+  else
+    right = value;
+}
+
+let a = 1, b = 2;
+update(() => true, ref a, ref b, 3);
+
+// transpiled.js
+function update(condition, ref_left, ref_right, value) {
+  if (condition())
+    ref_left.value = value;
+  else
+    ref_right.value = value;
+}
+
+let a = 1, b = 2;
+const ref_a = { get value() { return a; }, set value(_) { a = _; } };
+const ref_b = { get value() { return b; }, set value(_) { b = _; } };
+update(() => true, ref_a, ref_b);
+        </code></pre>
+
+        <pre><code class="javascript">
+// source.js
+function max(ref first, ref second, ref third) {
+  const ref max = first > second ? ref first : ref second;
+  return max > third ? ref max : ref third;
+}
+
+let a = 1, b = 2, c = 3;
+max(ref a, ref b, ref c) = 4;
+
+// transpiled.js
+function max(ref_first, ref_second, ref_third) {
+  const ref_max = ref_first.value > ref_second.value ? ref_first : ref_second;
+  return ref_max.value > ref_third.value ? ref_max : ref_third;
+}
+
+let a = 1, b = 2, c = 3;
+const ref_a = { get value() { return a; }, set value(_) { a = _; } };
+const ref_b = { get value() { return b; }, set value(_) { b = _; } };
+const ref_c = { get value() { return c; }, set value(_) { c = _; } };
+max(ref_a, ref_b, ref_c).value = 4;
+        </code></pre>
+
+        <pre><code class="javascript">
+function Type(type) {
+  if (typeof type === "ref") {
+  }
+}
+class Left {
+  @Type(ref Right)
+  right;
+}
+class Right {
+  @Type(ref Left)
+  left;
+}
+        </code></pre>
+
+    </emu-annex>
+</emu-annex>
