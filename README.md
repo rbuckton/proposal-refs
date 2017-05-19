@@ -15,7 +15,12 @@ This proposal defines new syntax to allow for the declaration and creation of us
 This proposal introduces two main concepts: 
 
 * `ref` expressions - A prefix unary expression that creates a "reference object" that defines a binding to its operand.
-  The operand must be a valid simple assignment target.
+  The operand must be a valid simple assignment target. 
+  * When the operand is a property accessor using dot notation, the target of the property accessor is evaluated immediately 
+    and a "reference object" is created for the actual property access.
+  * When the operand is a property accessor using bracket notation, the target and the expression of the accessor are evaluated
+    immediately and a "reference object" is created for the actual property access.
+  * When the operand is an identifier, a "reference object" is created for the binding.
 * `ref` declarations - A declaration of a parameter or variable that dereferences a "reference object", creating a binding 
   in the current scope to the target of the "reference object".
   
@@ -87,7 +92,7 @@ print(z); // 4
 ```js
 // forward references for decorators
 class Node {
-  @Type(ref Container)
+  @Type(ref Container) // no error due to TDZ
   get parent() { /*...*/ }
   @Type(ref Node)
   get nextSibling() { /*...*/ }
@@ -96,6 +101,35 @@ class Container extends Node {
   @Type(ref Node)
   get firstChild() { /*...*/ }
 }
+```
+
+```js
+// other general examples
+
+// forward reference to block-scoped variable
+ref a_ = ref a; // ok
+let a = 1;
+
+// forward reference to member of block-scoped variable
+ref b_ = ref b.x; // error
+let b = { x: 1 };
+
+// forward reference and early assignment to block-scoped variable
+ref c_ = ref c;
+c_ = 2; // error
+let c = 1;
+
+// forward reference to var
+ref d_ = ref d.x; // ok
+var d = { x: 1 };
+
+// side effects
+let count = 0;
+let e = [0, 1, 2];
+ref e_ = ref e[count++];
+print(e_); // 0
+print(e_); // 0
+print(count); // 1
 ```
 
 # Syntax
@@ -115,6 +149,16 @@ VariableDeclaration[In, Yield] :
 
 SingleNameBinding[Yield] :
     RefBinding[?Yield] Initializer[+In, ?Yield]?
+```
+
+# Reference Objects
+Reference objects have the following shape:
+
+```ts
+interface Ref<T> {
+   value: T;
+   [Symbol.toStringTag]: "Ref";
+}
 ```
 
 # Desugaring
