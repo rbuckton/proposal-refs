@@ -69,8 +69,8 @@ r.value = 2;
 p(); // 2
 ```
 
-```
-// combinations of the above
+```js
+// combining ref expressions, ref parameters, and ref variables
 function max(ref first, ref second, ref third) {
   ref max = first > second ? ref first : ref second;
   return max > third ? ref max : ref third;
@@ -84,7 +84,7 @@ print(y); // 2
 print(z); // 4
 ```
 
-```
+```js
 // forward references for decorators
 class Node {
   @Type(ref Container)
