@@ -105,7 +105,7 @@ UnaryExpression[Yield] :
     `ref` [no LineTerminator here] UnaryExpression[?Yield]
 
 RefBinding[Yield] :
-    `ref` BindingIdentifier[?Yield]
+    `ref` [no LineTerminator here] BindingIdentifier[?Yield]
 
 LexicalBinding[In, Yield] :
     RefBinding[?Yield] Initializer[?In, ?Yield]?
