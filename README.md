@@ -21,10 +21,13 @@ This proposal introduces two main concepts:
   * When the operand is a property accessor using bracket notation, the target and the expression of the accessor are evaluated
     immediately and a "reference object" is created for the actual property access.
   * When the operand is an identifier, a "reference object" is created for the binding.
+  * A `ref` expression is unambiguously a reference to a binding. Host engines can leverage this fact to optimize reference passing 
+    (as seen in the desugaring example below).
 * `ref` declarations - A declaration of a parameter or variable that dereferences a "reference object", creating a binding 
   in the current scope to the target of the "reference object".
-  * Host engines have the opportunity to optimize away the "reference object" if they can statically determine that only use sites
-    are arguments to call expressions whose parameters are declared `ref`.
+  * A `ref` declaration is unambiguously a dereference of some `ref` expression. Host engines can leverage this fact to optimize away 
+    the "reference object" if they can statically determine that the only use-sites are arguments to call expressions whose parameters
+    are declared `ref`.
   
 # Examples
 
