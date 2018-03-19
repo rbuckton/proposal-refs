@@ -1,4 +1,4 @@
-# Reference (`&`) declarations and expressions for ECMAScript
+# Reference (`ref`) declarations and expressions for ECMAScript
 
 This proposal defines new syntax to allow for the declaration and creation of user-defined references to bindings.
 
@@ -14,8 +14,8 @@ This proposal defines new syntax to allow for the declaration and creation of us
 
 This proposal introduces three main concepts: 
 
-* Reference expressions (e.g. `const r = &x`)
-* Reference declarations (e.g. `const &y = r`)
+* Reference expressions (e.g. `let r = ref x`)
+* Reference declarations (e.g. `let ref y = r`)
 * `Reference` objects
 
 ## Reference expressions
@@ -34,7 +34,7 @@ Reference expressions have the following semantics:
 This behavior can be illustrated by the following syntactic conversion:
 
 ```js
-const x = &y;
+const x = ref y;
 ```
 
 is roughly identical in its behavior to:
@@ -55,12 +55,12 @@ in the current scope.
 Reference declarations have the following semantics:
   * A Reference declaration is unambiguously a dereference of some Reference expression. Host engines can leverage this fact to optimize away 
     the `Reference` object if they can statically determine that the only use-sites are arguments to call expressions whose parameters
-    are declared `&`.
+    are declared `ref`.
 
 The behavior of a reference declaration can be illustrated by the following syntactic conversion:
 
 ```js
-function f(&y) {
+function f(ref y) {
   y = 1;
 }
 ```
@@ -91,7 +91,7 @@ interface Reference<T> {
 Take a reference to a variable:
 ```js
 let x = 1;
-const r = &x;
+const r = ref x;
 print(r.value); // 1
 r.value = 2;
 print(x); // 2;
@@ -100,7 +100,7 @@ print(x); // 2;
 Take a reference to a property:
 ```js
 let o = { x: 1 };
-const r = &o.x;
+const r = ref o.x;
 print(r.value); // 1
 r.value = 2;
 print(o); // { x: 2 }
@@ -109,7 +109,7 @@ print(o); // { x: 2 }
 Take a reference to an element:
 ```js
 let ar = [1];
-const r = &ar[0];
+const r = ref ar[0];
 print(r.value); // 1
 r.value = 2;
 print(ar); // [2]
@@ -119,7 +119,7 @@ Dereferencing:
 ```js
 // dereference a binding
 let x = 1;
-let &y = &x;
+let ref y = ref x;
 print(y); // 1
 y = 2;
 print(x); // 2
@@ -128,17 +128,17 @@ print(x); // 2
 Dereferencing a non-Reference object is a **TypeError**:
 ```js
 let x = 1;
-let &y = x; // TypeError: Value is not a Reference.
+let ref y = x; // TypeError: Value is not a Reference.
 ```
 
 Reference passing:
 ```js
-function update(&r) {
+function update(ref r) {
   r = 2;
 }
 
 let x = 1;
-update(&x);
+update(ref x);
 print(x); // 2
 ```
 
@@ -146,7 +146,7 @@ Referencing a local declaration creates a closure:
 ```js
 function f() {
   let x = 1;
-  return [&x, () => print(x)];
+  return [ref x, () => print(x)];
 }
 
 const [r, p] = f();
@@ -157,13 +157,13 @@ p(); // 2
 
 Combining reference expressions, reference parameters, and reference variables:
 ```js
-function max(&first, &second, &third) {
-  const &max = first > second ? &first : &second;
-  return max > third ? &max : &third;
+function max(ref first, ref second, ref third) {
+  const ref max = first > second ? ref first : ref second;
+  return max > third ? ref max : ref third;
 }
 
 let x = 1, y = 2, z = 3;
-let &w = max(&x, &y, &z);
+let ref w = max(ref x, ref y, ref z);
 w = 4;
 print(x); // 1
 print(y); // 2
@@ -172,23 +172,23 @@ print(z); // 4
 
 Forward reference to a block-scoped variable and TDZ:
 ```js
-let &a_ = &a; // ok, no error from TDZ
+let ref a_ = ref a; // ok, no error from TDZ
 let a = 1;
 
-let &b_ = &b;
+let ref b_ = ref b;
 b_ = 1; // error due to TDZ
 let b; 
 ```
 
 Forward reference to member of block-scoped variable:
 ```js
-let &b_ = &b.x; // error, TDZ for `b`
+let ref b_ = ref b.x; // error, TDZ for `b`
 let b = { x: 1 };
 ```
 
 Forward reference to `var`:
 ```js
-let &d_ = &d; // ok, no TDZ
+let ref d_ = ref d; // ok, no TDZ
 d_ = 2; // ok
 var d = 1;
 ```
@@ -196,13 +196,13 @@ var d = 1;
 Forward references for decorators:
 ```js
 class Node {
-  @Type(&Container) // ok, no error due to TDZ
+  @Type(ref Container) // ok, no error due to TDZ
   get parent() { /*...*/ }
-  @Type(&Node)
+  @Type(ref Node)
   get nextSibling() { /*...*/ }
 }
 class Container extends Node {
-  @Type(&Node)
+  @Type(ref Node)
   get firstChild() { /*...*/ }
 }
 ```
@@ -211,7 +211,7 @@ Side effects:
 ```js
 let count = 0;
 let e = [0, 1, 2];
-let &e_ = &e[count++]; // `count++` evaluated when reference is taken.
+let ref e_ = ref e[count++]; // `count++` evaluated when reference is taken.
 print(e_); // 0
 print(e_); // 0
 print(count); // 1
@@ -221,10 +221,10 @@ print(count); // 1
 
 ```grammarkdown
 UnaryExpression[Yield, Await]:
-  `&` UnaryExpression[?Yield, ?Await]
+  `ref` UnaryExpression[?Yield, ?Await]
 
 RefBinding[Yield, Await]:
-  `&` BindingIdentifier[?Yield, ?Await]
+  `ref` BindingIdentifier[?Yield, ?Await]
 
 LexicalBinding[In, Yield, Await]:
   RefBinding[?Yield, ?Await] Initializer[?In, ?Yield, ?Await]?
@@ -245,13 +245,13 @@ The following is an approximate desugaring for this proposal:
 
 ```js
 // proposed syntax
-function max(&first, &second, &third) {
-  const &max = first > second ? &first : &second;
-  return max > third ? &max : &third;
+function max(ref first, ref second, ref third) {
+  const ref max = first > second ? ref first : ref second;
+  return max > third ? ref max : ref third;
 }
 
 let x = 1, y = 2, z = 3;
-let &w = max(&x, &y, &z);
+let ref w = max(ref x, ref y, ref z);
 w = 4;
 print(x); // 1
 print(y); // 2
