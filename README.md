@@ -128,7 +128,8 @@ print(o); // { x: 2 }
 
 Array Binding Patterns:
 ```js
-// NOTE: If an Array Binding Pattern has a `ref` declaration, array indexing is used instead of Symbol.iterator and rest elements are not allowed.
+// NOTE: If an Array Binding Pattern has a `ref` declaration, array indexing is used 
+// instead of Symbol.iterator and rest elements are not allowed.
 let ar = [1];
 const [ref r] = ar;
 print(r.value); // 1
