@@ -239,11 +239,11 @@ print(e_); // 0
 print(count); // 1
 ```
 
-# Syntax
+# Grammar
 
 ```grammarkdown
-UnaryExpression[Yield, Await]:
-  `ref` UnaryExpression[?Yield, ?Await]
+UpdateExpression[Yield, Await]:
+  `ref` LeftHandSideExpression[?Yield, ?Await]
 
 RefBinding[Yield, Await]:
   `ref` BindingIdentifier[?Yield, ?Await]
