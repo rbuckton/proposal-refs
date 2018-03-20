@@ -15,7 +15,7 @@ This proposal defines new syntax to allow for the declaration and creation of us
 This proposal introduces three main concepts: 
 
 * Reference expressions (e.g. `let r = ref x`)
-* Reference declarations (e.g. `let ref y = r`)
+* Reference declarations (e.g. `let ref y = r`, or `function f(ref y) { }`)
 * `Reference` objects
 
 ## Reference expressions
@@ -110,6 +110,27 @@ Take a reference to an element:
 ```js
 let ar = [1];
 const r = ref ar[0];
+print(r.value); // 1
+r.value = 2;
+print(ar); // [2]
+```
+
+Object Binding Patterns:
+```js
+let o = { x: 1 };
+const { ref x } = o;
+// or:
+// const { x: ref x } = 0;
+print(x.value); // 1
+x.value = 2;
+print(o); // { x: 2 }
+```
+
+Array Binding Patterns:
+```js
+// NOTE: If an Array Binding Pattern has a `ref` declaration, array indexing is used instead of Symbol.iterator and rest elements are not allowed.
+let ar = [1];
+const [ref r] = ar;
 print(r.value); // 1
 r.value = 2;
 print(ar); // [2]
