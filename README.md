@@ -56,6 +56,16 @@ Reference declarations have the following semantics:
   * A Reference declaration is unambiguously a dereference of some Reference expression. Host engines can leverage this fact to optimize away 
     the `Reference` object if they can statically determine that the only use-sites are arguments to call expressions whose parameters
     are declared `ref`.
+  * A `ref x` parameter introduces a mutable binding to the underlying `Reference`. 
+    * Reading from `x` reads the value of the underlying `Reference`. 
+    * Assigning to `x` assigns to the value of the underlying `Reference`.
+  * A `let ref x` declaration introduces a mutable binding to the `Reference` supplied as the initializer.
+    * Reading from `x` reads the value of the underlying `Reference`. 
+    * Assigning to `x` assigns to the value of the underlying `Reference`.
+  * A `const ref x` declaration introduces an immutable binding.
+    * Reading from `x` reads the value of the underlying `Reference`. 
+    * Assigning to `x` is an error.
+    * Taking a `ref` of `x` will result in an immutable `Reference`.
 
 The behavior of a reference declaration can be illustrated by the following syntactic conversion:
 
@@ -63,6 +73,12 @@ The behavior of a reference declaration can be illustrated by the following synt
 function f(ref y) {
   y = 1;
 }
+
+let ref x1 = someRef;
+x1 = 1;
+
+const ref x2 = someRef;
+console.log(x2);
 ```
 
 is roughly identical in its behavior to:
@@ -71,6 +87,15 @@ is roughly identical in its behavior to:
 function f(ref_y) {
   ref_y.value = 1;
 }
+
+let ref_x1 = someRef;
+ref_x1.value = 1;
+
+const ref_x2 = ((someRef) => Object.freeze({ 
+  __proto__: Reference.prototype,
+  get value() { return someRef.value; }
+}))(someRef);
+console.log(ref_x2.value);
 ```
 
 ## `Reference` objects
@@ -141,16 +166,37 @@ Dereferencing:
 ```js
 // dereference a binding
 let x = 1;
-let ref y = ref x;
+let ref y = ref x; // 'y' effectively points to 'x'
 print(y); // 1
 y = 2;
 print(x); // 2
 ```
 
-Dereferencing a non-Reference object is a **TypeError**:
+Dereferencing a non-Reference (other than `undefined`) is a **ReferenceError**:
 ```js
 let x = 1;
 let ref y = x; // TypeError: Value is not a Reference.
+```
+
+Dereferencing `undefined` is ok, but accessing its value is a **ReferenceError** (`typeof` can still be used to test the reference):
+```js
+function f(ref y) {
+  typeof y; // ok, type is 'undefined' 
+  y; // ReferenceError: y is not defined.
+}
+f(undefined); // ok
+
+let x;
+function g(ref y = ref x) {}
+g(); // ok, parameter initialization will check whether the *argument* is undefined, not the binding.
+```
+
+Dereferencing an immutable Reference into a mutable Reference does not make it mutable:
+```js
+let x = 1;
+const ref y = ref x; // ok, `x` is mutable
+let ref z = ref y; // ok, but `z` is actually immutable
+z = 2; // error
 ```
 
 Reference passing:
