@@ -380,3 +380,86 @@ print(ar[0]); // 1;
 print(ar[1]); // 2;
 print(ar[2]); // 4;
 ```
+
+Here's an example using private names:
+
+```js
+// proposed syntax
+class C {
+  #counter = 0;
+  get count() { return this.#counter; }
+  provideCounter(cb) {
+    cb(ref this.#counter);
+  }
+}
+
+function increment(ref counter) {
+  counter++;
+}
+
+const c = new C();
+c.provideCounter(increment);
+c.provideCounter(increment);
+print(c.count); // 2
+
+// desugared
+const __ref = (get, set) => Object.freeze(Object.create(null, { value: { get, set } }));
+class C {
+  #counter = 0;
+  get count() { return this.#counter; }
+  provideCounter(cb) {
+    cb(__ref(() => this.#counter, _ => this.#counter = _));
+  }
+}
+
+function increment(ref_counter) {
+  ref_counter.value++;
+}
+
+const c = new C();
+c.provideCounter(increment);
+c.provideCounter(increment);
+print(c.count); // 2
+```
+
+# Future Considerations
+
+We may want to make it possible to revoke a reference, for example:
+```js
+let a = 1;
+let { ref reference: b, revoke } = Reference.revocable(ref a);
+b = 2;
+console.log(a); // 2
+revoke();
+b = 3; // ReferenceError
+```
+
+However, it may be possible to do this in userland (though engines may not be able to optimize away a userland type):
+```js
+function revocableReference(ref_value) {
+  const reference = Object.create(Reference.prototype, {
+    value: {
+      get() { 
+        if (ref_value === null) throw new ReferenceError();
+        return ref_value.value;
+      },
+      set(v) {
+        if (ref_value === null) throw new ReferenceError();
+        ref_value.value = v;
+      }
+    }
+  });
+  function revoke() {
+    ref_value = null;
+  }
+  return { reference, revoke };
+}
+
+let a = 1;
+let { ref reference: b, revoke } = revocableReference(ref a);
+b = 2;
+console.log(a); // 2
+revoke();
+b = 3; // ReferenceError
+```
+
