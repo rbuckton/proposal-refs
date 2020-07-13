@@ -326,18 +326,57 @@ print(y); // 2
 print(z); // 4
 
 // desugaring
+const __ref = (get, set) => Object.freeze(Object.create(null, { value: { get, set } }));
+
 function max(ref_first, ref_second, ref_third) {
   const ref_max = ref_first.value > ref_second.value ? ref_first : ref_second;
   return ref_max.value > ref_third.value ? ref_max : ref_third;
 }
 
 let x = 1, y = 2, z = 3;
-const ref_x = Object.freeze({ get value() { return x; }, set value(_) { x = _; } });
-const ref_y = Object.freeze({ get value() { return y; }, set value(_) { y = _; } });
-const ref_z = Object.freeze({ get value() { return z; }, set value(_) { z = _; } });
+const ref_x = __ref(() => x, _ => x = _);
+const ref_y = __ref(() => y, _ => y = _);
+const ref_z = __ref(() => z, _ => z = _);
 const ref_w = max(ref_x, ref_y, ref_z);
 ref_w.value = 4;
 print(x); // 1
 print(y); // 2
 print(z); // 4
+```
+
+And here's the same example using an array:
+
+```js
+// proposed syntax
+function max(ref first, ref second, ref third) {
+  const ref max = first > second ? ref first : ref second;
+  return max > third ? ref max : ref third;
+}
+
+// arrays
+let ar = [1, 2, 3];
+let ref w = max(ref ar[0], ref ar[1], ref ar[2]);
+w = 4;
+print(ar[0]); // 1;
+print(ar[1]); // 2;
+print(ar[2]); // 4;
+
+// desugaring
+const __ref = (get, set) => Object.freeze(Object.create(null, { value: { get, set } }));
+const __elemRef = (o, p) => __ref(() => o[p], _ => o[p] = _);
+
+function max(ref_first, ref_second, ref_third) {
+  const ref_max = ref_first.value > ref_second.value ? ref_first : ref_second;
+  return ref_max.value > ref_third.value ? ref_max : ref_third;
+}
+
+let ar = [1, 2, 3];
+const ref_ar0 = __elemRef(ar, 0);
+const ref_ar1 = __elemRef(ar, 1);
+const ref_ar2 = __elemRef(ar, 2);
+const ref_w = max(ref_x, ref_y, ref_z);
+ref_w.value = 4;
+print(ar[0]); // 1;
+print(ar[1]); // 2;
+print(ar[2]); // 4;
 ```
