@@ -26,6 +26,6 @@
     "ecmarkup": "^3.11.2",
     "gulp": "^3.9.1",
     "gulp-emu": "^1.1.0",
-    "gulp-live-server": "0.0.30"
+    "gulp-live-server": "0.0.31"
   }
 }
